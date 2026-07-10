@@ -2,11 +2,6 @@ import pyxel
 import random
 import math
 
-try:
-    import js
-except ImportError:
-    js = None
-
 # --- 定数設定 ---
 BTN_A = getattr(pyxel, "GAMEPAD1_A", getattr(pyxel, "GAMEPAD_1_A", -1))
 DIR_L = getattr(pyxel, "GAMEPAD1_LEFT", getattr(pyxel, "GAMEPAD_1_LEFT", -1))
@@ -29,18 +24,8 @@ STAGES = [
 class Game:
     def __init__(self):
         pyxel.init(128, 128, title="Binary HUMAN DX")
-        
-        # リソース読み込みのエラー回避策（もし無ければスキップして起動する）
-        try:
-            pyxel.load("my_resourcekakou.pyxres")
-        except:
-            print("Resource load error, but continuing...")
-            pass
-            
-        try:
-            pyxel.images[1].load(0, 0, "image_LOGO02.png")
-        except:
-            pass
+        pyxel.load("my_resourcekakou.pyxres")
+        pyxel.images[1].load(0, 0, "image_LOGO02.png")
         
         pyxel.sounds[0].set("c3e3g3c4e3c3g3e3f3a3c4f4a3f3c4a3", "p", "4", "n", 15)
         pyxel.sounds[1].set("a1", "n", "2", "n", 10)
@@ -48,55 +33,9 @@ class Game:
         pyxel.sounds[3].set("c1", "n", "5", "n", 5)
         pyxel.sounds[4].set("c2e2g2c3", "s", "6", "n", 20)
         self.debug_mode = False
-        
-        # Web動画対応
-        self.video_playing = False
-        
+        pyxel.play(0, 0, loop=True)
         self.reset_game()
-
-        if js:
-            js.window.game_instance = self
-
         pyxel.run(self.update, self.draw)
-
-    def movie_finished(self):
-        print("movie finished")
-
-        self.video_playing = False
-
-        self.loop += 1
-        self.stage = 0
-
-        self.load_stage()
-
-        self.state = "TITLE"
-
-
-
-
-    def play_video(self, movie_name):
-        if js is None:
-            self.video_playing = False
-            return
-
-        try:
-            js.showEndingMovie(movie_name)
-        except Exception as e:
-            print("VIDEO ERROR:", e)
-         
-            self.video_playing = False
-    def movie_finished(self):
-        print("movie finished")
-
-        self.video_playing = False
-
-        self.loop += 1
-        self.stage = 0
-
-        self.load_stage()
-
-        self.state = "TITLE"
-    # -----------------------------
 
     def reset_game(self):
         self.state = "TITLE"
@@ -109,9 +48,6 @@ class Game:
         self.input_sequence = []
         self.invincible_timer = 0
         self.invincible_item = None
-        
-        # タイトルに戻ったときにBGMを鳴らす
-        pyxel.play(0, 0, loop=True)
         self.load_stage()
 
     def load_stage(self):
@@ -120,6 +56,7 @@ class Game:
         potential_enemies = [[x, y] for y, r in enumerate(self.map) for x, c in enumerate(r) if c == '4']
         self.enemies = []
         for e in potential_enemies:
+            # 2周目は全敵を出現させる（1周目はスタート地点付近を除外）
             if self.loop < 2:
                 if (abs(e[0]-1) + abs(e[1]-10) > 2) and (abs(e[0]-14) + abs(e[1]-10) > 2):
                     self.enemies.append(e)
@@ -197,36 +134,26 @@ class Game:
                         if self.lives <= 0: self.state = "GAMEOVER"
                         else: self.load_stage(); self.start_delay = 30
             case "ENDING":
-                if not self.video_playing:
-                    self.ending_timer += 1
-                    if self.ending_timer > 800 and self.is_action_btn():
-
-                        self.video_playing = True
-
-                        r = random.random()
-
-                        if r < 0.90:
-                            movie = "v1"      # 90%
-
-                        elif r < 0.97:
-                            movie = "v2"      # 7%
-
-                        else:
-                            movie = "v3"      # 3%
-
-                        print("BONUS MOVIE =", movie)
-
-                        self.play_video(movie)
+                self.ending_timer += 1
+                if self.ending_timer > 800 and self.is_action_btn():
+                    self.debug_mode = False
+                    self.loop += 1
+                    self.stage = 0
+                    self.load_stage()
+                    self.state = "GAME"
             case "GAMEOVER":
                 if self.is_action_btn():
                     self.reset_game()
 
     def move_players(self, auto_dx=None, auto_dy=None):
         if self.invincible_timer > 0: self.invincible_timer -= 1
+        
+        # 2周目以降、難易度が上がる（アイテム確率が周回ごとに下がる）
         prob = max(0.0005, 0.002 - (self.loop - 1) * 0.0003)
         if self.stage < 5 and self.state != "BOSS" and self.invincible_item is None and random.random() < prob:
             rx, ry = random.randint(1, 14), random.randint(1, 10)
             if self.map[ry][rx] == '0': self.invincible_item = [rx, ry]
+        
         is_frozen = self.freeze_timer > 0
         if is_frozen: self.freeze_timer -= 1
         dx = dy = 0
@@ -261,6 +188,7 @@ class Game:
                 self.stage += 1; self.load_stage(); self.start_delay = 30
 
     def update_enemies(self):
+        # 2周目以降、難易度が上がる（周回ごとに移動速度を上げる）
         speed = max(3, 30 - (self.stage * 4) - (self.loop - 1) * 2)
         if pyxel.frame_count % speed == 0:
             for e in self.enemies:
@@ -298,6 +226,7 @@ class Game:
         if self.boss:
             s = abs(math.sin(pyxel.frame_count * 0.2)) * 16 + 8
             pyxel.circ(self.boss[0]*TILE + 4, OY+self.boss[1]*TILE + 4, s, 8); pyxel.circb(self.boss[0]*TILE + 4, OY+self.boss[1]*TILE + 4, s + 2, 9); pyxel.blt(self.boss[0]*TILE, OY+self.boss[1]*TILE, 0, 40, 0, 8, 8, 0)
+        
         if self.invincible_item is not None: pyxel.blt(self.invincible_item[0]*TILE, OY+self.invincible_item[1]*TILE, 0, 64, 0, 8, 8, 0)
         if self.invincible_timer <= 0 or pyxel.frame_count % 4 < 2:
             pyxel.blt(self.p1[0]*TILE, OY+self.p1[1]*TILE, 0, 0, 0, 8, 8, 0); pyxel.blt(self.p2[0]*TILE, OY+self.p2[1]*TILE, 0, 8, 0, 8, 8, 0)
@@ -307,36 +236,26 @@ class Game:
         match self.state:
             case "TITLE":
                 self.draw_game_elements()
-                
-                # 画像リソースが読み込めていない場合にエラー落ちしないためのフェールセーフ
-                try:
-                    pyxel.blt(15, 30, 1, 0, 0, 100, 33)
-                except:
-                    pyxel.text(15, 30, "LOGO IMAGE MISSING", 8)
-                    
+                pyxel.blt(15, 30, 1, 0, 0, 100, 33)
                 pyxel.rect(20, 95, 88, 25, 0); pyxel.rectb(20, 95, 88, 25, 7)
                 pyxel.text(25, 100, "MOVE: ARROW KEYS", 9); pyxel.text(25, 110, "GET ITEMS & DOOR", 9); pyxel.text(25, 55, "(C)MIRAI WORK/M.T 2026", 6)
                 if pyxel.frame_count % 40 < 20: pyxel.text(25, 80, "PUSH SPACE/A BUTTON!", 7)
                 if self.debug_mode: pyxel.text(5, 5, "DEBUG MODE", 8)
             case "OPENING":
-                pyxel.text(45, 35, "STORY START", 7)
-                try:
-                    pyxel.blt(30 + (pyxel.frame_count % 60), 60, 0, 0, 0, 8, 8); pyxel.blt(90 - (pyxel.frame_count % 60), 60, 0, 8, 0, 8, 8)
-                except:
-                    pass
+                pyxel.text(45, 35, "STORY START", 7); pyxel.blt(30 + (pyxel.frame_count % 60), 60, 0, 0, 0, 8, 8); pyxel.blt(90 - (pyxel.frame_count % 60), 60, 0, 8, 0, 8, 8)
                 pyxel.text(25, 80, "PRESS SPACE/A BUTTON!", pyxel.frame_count % 16)
             case "GAME" | "BOSS":
                 self.draw_game_elements()
-                pyxel.text(2, 5, f"SCORE:{self.score} LOOP:{self.loop} STG:{self.stage+1} LIFE:{self.lives}", 11)
-                if self.invincible_timer > 0: pyxel.text(90, 13, f"INV:{self.invincible_timer // 30}", 10)
+                pyxel.text(3, 5, f"SCORE:{self.score} LOOP:{self.loop} STG:{self.stage+1} LIVES:{self.lives}", 11)
+                
+                if self.invincible_timer > 0:
+                    pyxel.text(90, 13, f"INV:{self.invincible_timer // 30}", 10)
+                
                 if self.debug_mode: pyxel.text(5, 13, "DEBUG MODE", 8)
                 if self.start_delay > 0: pyxel.text(42, 60, "PLAY START!", (pyxel.frame_count // 4) % 15 + 1)
             case "ENDING":
                 t = self.ending_timer
-                if t < 150: 
-                    s = abs(math.sin(t * 0.2)) * 40 + 10; pyxel.circ(64, 64, s, (t // 5) % 16); pyxel.circb(64, 64, s + 5, 8)
-                    try: pyxel.blt(60, 60, 0, 40, 0, 8, 8, 0)
-                    except: pass
+                if t < 150: s = abs(math.sin(t * 0.2)) * 40 + 10; pyxel.circ(64, 64, s, (t // 5) % 16); pyxel.circb(64, 64, s + 5, 8); pyxel.blt(60, 60, 0, 40, 0, 8, 8, 0)
                 elif t < 200: pyxel.circ(64, 64, (t - 150) * 2, 10); pyxel.circ(64, 64, (t - 150) * 1.5, 9); pyxel.circ(64, 64, (t - 150) * 1, 7)
                 if t > 180:
                     for i in range(40):
@@ -345,24 +264,16 @@ class Game:
                         y = (i * 53 + (t - 180) * speed) % 128
                         pyxel.pset(x, y, 7 if speed == 3 else (6 if speed == 2 else 5))
                     earth_y = 100 + (t - 180) * 0.2; pyxel.circ(64, earth_y, 40, 1); pyxel.circ(50, earth_y - 10, 10, 3); pyxel.circ(70, earth_y + 10, 15, 3)
-                    pod_y = 64 - (t - 180) * 0.3
-                    try:
-                        pyxel.blt(56, pod_y, 0, 0, 0, 8, 8, 0); pyxel.blt(64, pod_y, 0, 8, 0, 8, 8, 0)
-                    except: pass
+                    pod_y = 64 - (t - 180) * 0.3; pyxel.blt(56, pod_y, 0, 0, 0, 8, 8, 0); pyxel.blt(64, pod_y, 0, 8, 0, 8, 8, 0)
                 if t > 250:
                     credits = ["BINARY HUMAN DX", "PRODUCER: M.T", "TEAM T.D", "(C)MIRAI WORK/M.T 2026", "THANK YOU FOR PLAYING!"]
                     for i, text in enumerate(credits):
                         y = 128 - ((t - 250) * 0.5) + (i * 15)
                         if -10 < y < 130: pyxel.text(64 - len(text)*2, y, text, 11)
-                if t > 800 and not self.video_playing:
-                    msg = "PRESS SPACE/A TO BONUS!"
-                    col = (pyxel.frame_count % 16) + 1
-                    pyxel.text(64 - (len(msg) * 2), 35, msg, col)
-                elif self.video_playing:
-                    pyxel.text(45, 60, "NOW LOADING...", pyxel.frame_count % 15 + 1)
+                pyxel.text(10, 120, "PRESS SPACE/A TO CONTINUE" if t > 800 else "", 7)
             case "GAMEOVER":
                 self.draw_game_elements()
-                pyxel.text(2, 5, f"SCORE:{self.score} STG:{self.stage+1} LIFE:{self.lives}", 8)
+                pyxel.text(5, 5, f"SCORE:{self.score} STG:{self.stage+1} LIVES:{self.lives}", 8)
                 pyxel.text(45, 60, "GAME OVER", 8)
                 pyxel.text(23, 80, "PUSH SPACE/A TO RESTART", (pyxel.frame_count % 15) + 1)
 
