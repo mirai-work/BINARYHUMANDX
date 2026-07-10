@@ -1,15 +1,44 @@
 <!DOCTYPE html>
-<html>
+<html lang="ja">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Binary HUMAN DX</title>
     <style>
-        body { margin: 0; background: #000; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
-        #container { position: relative; width: 512px; height: 512px; }
-        video { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: none; z-index: 100; object-fit: contain; background: black; }
-        /* PyxelのCanvasサイズを固定 */
-        canvas { width: 100%; height: 100%; }
+        body { 
+            margin: 0; 
+            background: #000; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            overflow: hidden; 
+        }
+        #container { 
+            position: relative; 
+            /* 画面サイズに合わせて自動縮小しつつ、最大512pxに制限 */
+            width: 100vw; 
+            max-width: 512px; 
+            /* Pyxelの解像度(128x128)に合わせて正方形を維持 */
+            aspect-ratio: 1 / 1; 
+        }
+        video { 
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            display: none; 
+            z-index: 100; 
+            object-fit: contain; 
+            background: black; 
+        }
+        /* PyxelのCanvasサイズをコンテナにピッタリはめる */
+        canvas { 
+            width: 100% !important; 
+            height: 100% !important; 
+            object-fit: contain;
+        }
     </style>
 </head>
 <body>
@@ -19,6 +48,7 @@
         <video id="v3" src="rea3kenjya.mp4" playsinline></video>
         
         <script src="https://cdn.jsdelivr.net/gh/kitao/pyxel/wasm/pyxel.js"></script>
+        
         <pyxel-run src="BinarryGITHUByou.py"></pyxel-run>
     </div>
 </body>
