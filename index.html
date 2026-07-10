@@ -16,10 +16,8 @@
         }
         #container { 
             position: relative; 
-            /* 画面サイズに合わせて自動縮小しつつ、最大512pxに制限 */
             width: 100vw; 
             max-width: 512px; 
-            /* Pyxelの解像度(128x128)に合わせて正方形を維持 */
             aspect-ratio: 1 / 1; 
         }
         video { 
@@ -33,7 +31,6 @@
             object-fit: contain; 
             background: black; 
         }
-        /* PyxelのCanvasサイズをコンテナにピッタリはめる */
         canvas { 
             width: 100% !important; 
             height: 100% !important; 
@@ -49,7 +46,7 @@
         
         <script src="https://cdn.jsdelivr.net/gh/kitao/pyxel/wasm/pyxel.js"></script>
         
-        <pyxel-run src="BinarryGITHUByou.py"></pyxel-run>
+        <pyxel-run script="BinarryGITHUByou.py"></pyxel-run>
     </div>
 </body>
 </html>
