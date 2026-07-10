@@ -38,25 +38,26 @@ function showEndingMovie(name) {
 
     video.onended = function () {
 
-        
-    console.log("movie ended");
+        console.log("movie ended");
 
-    video.remove();
+        video.remove();
 
-    if (window.game_instance) {
-        window.game_instance.movie_finished();
-    }
-};
+        if (window.game_instance) {
+            window.game_instance.movie_finished();
+        }
+    };
 
     video.onerror = function () {
-    console.error("movie load error:", video.src);
 
-    video.remove();
+        console.error("movie load error:", video.src);
 
-    if (window.game_instance) {
-        window.game_instance.movie_finished();
-    }
-};
+        video.remove();
+
+        if (window.game_instance) {
+            window.game_instance.movie_finished();
+        }
+    };
+}
 </script>
 
 <style>
