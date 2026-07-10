@@ -1,9 +1,10 @@
 import pyxel
 import random
 import math
+
 try:
     import js
-except:
+except ImportError:
     js = None
 
 # --- 定数設定 ---
@@ -28,7 +29,14 @@ STAGES = [
 class Game:
     def __init__(self):
         pyxel.init(128, 128, title="Binary HUMAN DX")
-        pyxel.load("my_resourcekakou.pyxres")
+        
+        # リソース読み込みのエラー回避策（もし無ければスキップして起動する）
+        try:
+            pyxel.load("my_resourcekakou.pyxres")
+        except:
+            print("Resource load error, but continuing...")
+            pass
+            
         try:
             pyxel.images[1].load(0, 0, "image_LOGO02.png")
         except:
@@ -44,7 +52,6 @@ class Game:
         # Web動画対応
         self.video_playing = False
         
-        pyxel.play(0, 0, loop=True)
         self.reset_game()
         pyxel.run(self.update, self.draw)
 
@@ -65,7 +72,6 @@ class Game:
     def hide_video(self, video):
         video.style.display = "none"
         self.video_playing = False
-        # ループ処理
         self.loop += 1
         self.stage = 0
         self.load_stage()
@@ -83,6 +89,9 @@ class Game:
         self.input_sequence = []
         self.invincible_timer = 0
         self.invincible_item = None
+        
+        # タイトルに戻ったときにBGMを鳴らす
+        pyxel.play(0, 0, loop=True)
         self.load_stage()
 
     def load_stage(self):
@@ -263,13 +272,23 @@ class Game:
         match self.state:
             case "TITLE":
                 self.draw_game_elements()
-                pyxel.blt(15, 30, 1, 0, 0, 100, 33)
+                
+                # 画像リソースが読み込めていない場合にエラー落ちしないためのフェールセーフ
+                try:
+                    pyxel.blt(15, 30, 1, 0, 0, 100, 33)
+                except:
+                    pyxel.text(15, 30, "LOGO IMAGE MISSING", 8)
+                    
                 pyxel.rect(20, 95, 88, 25, 0); pyxel.rectb(20, 95, 88, 25, 7)
                 pyxel.text(25, 100, "MOVE: ARROW KEYS", 9); pyxel.text(25, 110, "GET ITEMS & DOOR", 9); pyxel.text(25, 55, "(C)MIRAI WORK/M.T 2026", 6)
                 if pyxel.frame_count % 40 < 20: pyxel.text(25, 80, "PUSH SPACE/A BUTTON!", 7)
                 if self.debug_mode: pyxel.text(5, 5, "DEBUG MODE", 8)
             case "OPENING":
-                pyxel.text(45, 35, "STORY START", 7); pyxel.blt(30 + (pyxel.frame_count % 60), 60, 0, 0, 0, 8, 8); pyxel.blt(90 - (pyxel.frame_count % 60), 60, 0, 8, 0, 8, 8)
+                pyxel.text(45, 35, "STORY START", 7)
+                try:
+                    pyxel.blt(30 + (pyxel.frame_count % 60), 60, 0, 0, 0, 8, 8); pyxel.blt(90 - (pyxel.frame_count % 60), 60, 0, 8, 0, 8, 8)
+                except:
+                    pass
                 pyxel.text(25, 80, "PRESS SPACE/A BUTTON!", pyxel.frame_count % 16)
             case "GAME" | "BOSS":
                 self.draw_game_elements()
@@ -279,7 +298,10 @@ class Game:
                 if self.start_delay > 0: pyxel.text(42, 60, "PLAY START!", (pyxel.frame_count // 4) % 15 + 1)
             case "ENDING":
                 t = self.ending_timer
-                if t < 150: s = abs(math.sin(t * 0.2)) * 40 + 10; pyxel.circ(64, 64, s, (t // 5) % 16); pyxel.circb(64, 64, s + 5, 8); pyxel.blt(60, 60, 0, 40, 0, 8, 8, 0)
+                if t < 150: 
+                    s = abs(math.sin(t * 0.2)) * 40 + 10; pyxel.circ(64, 64, s, (t // 5) % 16); pyxel.circb(64, 64, s + 5, 8)
+                    try: pyxel.blt(60, 60, 0, 40, 0, 8, 8, 0)
+                    except: pass
                 elif t < 200: pyxel.circ(64, 64, (t - 150) * 2, 10); pyxel.circ(64, 64, (t - 150) * 1.5, 9); pyxel.circ(64, 64, (t - 150) * 1, 7)
                 if t > 180:
                     for i in range(40):
@@ -288,7 +310,10 @@ class Game:
                         y = (i * 53 + (t - 180) * speed) % 128
                         pyxel.pset(x, y, 7 if speed == 3 else (6 if speed == 2 else 5))
                     earth_y = 100 + (t - 180) * 0.2; pyxel.circ(64, earth_y, 40, 1); pyxel.circ(50, earth_y - 10, 10, 3); pyxel.circ(70, earth_y + 10, 15, 3)
-                    pod_y = 64 - (t - 180) * 0.3; pyxel.blt(56, pod_y, 0, 0, 0, 8, 8, 0); pyxel.blt(64, pod_y, 0, 8, 0, 8, 8, 0)
+                    pod_y = 64 - (t - 180) * 0.3
+                    try:
+                        pyxel.blt(56, pod_y, 0, 0, 0, 8, 8, 0); pyxel.blt(64, pod_y, 0, 8, 0, 8, 8, 0)
+                    except: pass
                 if t > 250:
                     credits = ["BINARY HUMAN DX", "PRODUCER: M.T", "TEAM T.D", "(C)MIRAI WORK/M.T 2026", "THANK YOU FOR PLAYING!"]
                     for i, text in enumerate(credits):
