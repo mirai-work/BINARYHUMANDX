@@ -32,7 +32,7 @@ class Game:
         pyxel.sounds[2].set("e2g2", "s", "4", "n", 15)
         pyxel.sounds[3].set("c1", "n", "5", "n", 5)
         pyxel.sounds[4].set("c2e2g2c3", "s", "6", "n", 20)
-        self.debug_mode = False
+        self.debug_mode = False # ここで初期化
         pyxel.play(0, 0, loop=True)
         self.reset_game()
         pyxel.run(self.update, self.draw)
@@ -56,7 +56,6 @@ class Game:
         potential_enemies = [[x, y] for y, r in enumerate(self.map) for x, c in enumerate(r) if c == '4']
         self.enemies = []
         for e in potential_enemies:
-            # 2周目は全敵を出現させる（1周目はスタート地点付近を除外）
             if self.loop < 2:
                 if (abs(e[0]-1) + abs(e[1]-10) > 2) and (abs(e[0]-14) + abs(e[1]-10) > 2):
                     self.enemies.append(e)
@@ -136,7 +135,6 @@ class Game:
             case "ENDING":
                 self.ending_timer += 1
                 if self.ending_timer > 800 and self.is_action_btn():
-                    self.debug_mode = False
                     self.loop += 1
                     self.stage = 0
                     self.load_stage()
@@ -148,7 +146,6 @@ class Game:
     def move_players(self, auto_dx=None, auto_dy=None):
         if self.invincible_timer > 0: self.invincible_timer -= 1
         
-        # 2周目以降、難易度が上がる（アイテム確率が周回ごとに下がる）
         prob = max(0.0005, 0.002 - (self.loop - 1) * 0.0003)
         if self.stage < 5 and self.state != "BOSS" and self.invincible_item is None and random.random() < prob:
             rx, ry = random.randint(1, 14), random.randint(1, 10)
@@ -188,7 +185,6 @@ class Game:
                 self.stage += 1; self.load_stage(); self.start_delay = 30
 
     def update_enemies(self):
-        # 2周目以降、難易度が上がる（周回ごとに移動速度を上げる）
         speed = max(3, 30 - (self.stage * 4) - (self.loop - 1) * 2)
         if pyxel.frame_count % speed == 0:
             for e in self.enemies:
