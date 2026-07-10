@@ -246,7 +246,7 @@ class Game:
                 pyxel.text(25, 80, "PRESS SPACE/A BUTTON!", pyxel.frame_count % 16)
             case "GAME" | "BOSS":
                 self.draw_game_elements()
-                pyxel.text(3, 5, f"SCORE:{self.score} LOOP:{self.loop} STG:{self.stage+1} LIVES:{self.lives}", 11)
+                pyxel.text(3, 5, f"SCORE:{self.score} LOOP:{self.loop} STG:{self.stage+1} LIFE:{self.lives}", 11)
                 
                 if self.invincible_timer > 0:
                     pyxel.text(90, 13, f"INV:{self.invincible_timer // 30}", 10)
@@ -273,7 +273,7 @@ class Game:
                 pyxel.text(10, 120, "PRESS SPACE/A TO CONTINUE" if t > 800 else "", 7)
             case "GAMEOVER":
                 self.draw_game_elements()
-                pyxel.text(5, 5, f"SCORE:{self.score} STG:{self.stage+1} LIVES:{self.lives}", 8)
+                pyxel.text(5, 5, f"SCORE:{self.score} STG:{self.stage+1} LIFE:{self.lives}", 8)
                 pyxel.text(45, 60, "GAME OVER", 8)
                 pyxel.text(23, 80, "PUSH SPACE/A TO RESTART", (pyxel.frame_count % 15) + 1)
 
