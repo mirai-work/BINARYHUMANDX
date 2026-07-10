@@ -1,7 +1,25 @@
 <!DOCTYPE html>
 <html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Binary HUMAN DX</title>
+    <style>
+        body { margin: 0; background: #000; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
+        #container { position: relative; width: 512px; height: 512px; }
+        video { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: none; z-index: 100; object-fit: contain; background: black; }
+        /* PyxelのCanvasサイズを固定 */
+        canvas { width: 100%; height: 100%; }
+    </style>
+</head>
 <body>
-    <script src="https://cdn.jsdelivr.net/gh/kitao/pyxel/lib/pyxel.js"></script>
-    <pyxel-run src="BinarryGITHUByou.py"></pyxel-run>
+    <div id="container">
+        <video id="v1" src="rea1gumono.mp4" playsinline></video>
+        <video id="v2" src="rea2seigi.mp4" playsinline></video>
+        <video id="v3" src="rea3kenjya.mp4" playsinline></video>
+        
+        <script src="https://cdn.jsdelivr.net/gh/kitao/pyxel/lib/pyxel.js"></script>
+        <pyxel-run src="BinarryGITHUByou.py"></pyxel-run>
+    </div>
 </body>
 </html>
