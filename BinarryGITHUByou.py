@@ -53,29 +53,49 @@ class Game:
         self.video_playing = False
         
         self.reset_game()
+
+        if js:
+            js.window.game_instance = self
+
         pyxel.run(self.update, self.draw)
 
-    # --- 動画再生用の追加メソッド ---
-    def play_video(self, video_id):
+    def movie_finished(self):
+        print("movie finished")
+
+        self.video_playing = False
+
+        self.loop += 1
+        self.stage = 0
+
+        self.load_stage()
+
+        self.state = "TITLE"
+
+
+
+
+    def play_video(self, movie_name):
         if js is None:
+            self.video_playing = False
             return
 
         try:
-            video = js.document.getElementById(video_id)
-            if video:
-                video.style.display = "block"
-                video.play()
-                video.onended = lambda e: self.hide_video(video)
-        except:
-            pass
+            js.showEndingMovie(movie_name)
+        except Exception as e:
+            print("VIDEO ERROR:", e)
+         
+            self.video_playing = False
+    def movie_finished(self):
+        print("movie finished")
 
-    def hide_video(self, video):
-        video.style.display = "none"
         self.video_playing = False
+
         self.loop += 1
         self.stage = 0
+
         self.load_stage()
-        self.state = "GAME"
+
+        self.state = "TITLE"
     # -----------------------------
 
     def reset_game(self):
@@ -180,8 +200,23 @@ class Game:
                 if not self.video_playing:
                     self.ending_timer += 1
                     if self.ending_timer > 800 and self.is_action_btn():
+
                         self.video_playing = True
-                        self.play_video("v1")
+
+                        r = random.random()
+
+                        if r < 0.90:
+                            movie = "v1"      # 90%
+
+                        elif r < 0.97:
+                            movie = "v2"      # 7%
+
+                        else:
+                            movie = "v3"      # 3%
+
+                        print("BONUS MOVIE =", movie)
+
+                        self.play_video(movie)
             case "GAMEOVER":
                 if self.is_action_btn():
                     self.reset_game()
