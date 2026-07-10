@@ -38,26 +38,25 @@ function showEndingMovie(name) {
 
     video.onended = function () {
 
-        console.log("movie ended");
+        
+    console.log("movie ended");
 
-        video.remove();
+    video.remove();
 
-        if (window.pyxel_app) {
-            console.log("return title");
-            window.pyxel_app.movie_finished();
-        }
-    };
+    if (window.game_instance) {
+        window.game_instance.movie_finished();
+    }
+};
 
     video.onerror = function () {
-        console.error("movie load error:", video.src);
+    console.error("movie load error:", video.src);
 
-        video.remove();
+    video.remove();
 
-        if (window.pyxel_app) {
-            window.pyxel_app.movie_finished();
-        }
-    };
-}
+    if (window.game_instance) {
+        window.game_instance.movie_finished();
+    }
+};
 </script>
 
 <style>
@@ -74,7 +73,7 @@ html, body {
 <body>
 
 <pyxel-run
-    name="BinarryGITHUByou.py"
+    src="BinarryGITHUByou.py"
     gamepad="enabled">
 </pyxel-run>
 
