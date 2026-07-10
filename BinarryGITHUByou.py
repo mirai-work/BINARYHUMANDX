@@ -1,6 +1,7 @@
 import pyxel
 import random
 import math
+import js  # ブラウザ連携用
 
 # --- 定数設定 ---
 BTN_A = getattr(pyxel, "GAMEPAD1_A", getattr(pyxel, "GAMEPAD_1_A", -1))
@@ -25,7 +26,10 @@ class Game:
     def __init__(self):
         pyxel.init(128, 128, title="Binary HUMAN DX")
         pyxel.load("my_resourcekakou.pyxres")
-        pyxel.images[1].load(0, 0, "image_LOGO02.png")
+        try:
+            pyxel.images[1].load(0, 0, "image_LOGO02.png")
+        except:
+            pass
         
         pyxel.sounds[0].set("c3e3g3c4e3c3g3e3f3a3c4f4a3f3c4a3", "p", "4", "n", 15)
         pyxel.sounds[1].set("a1", "n", "2", "n", 10)
@@ -34,13 +38,33 @@ class Game:
         pyxel.sounds[4].set("c2e2g2c3", "s", "6", "n", 20)
         self.debug_mode = False
         
-        # Web対応：動画の代わりにタイマーを使う
+        # Web動画対応
         self.video_playing = False
-        self.video_start_frame = 0
         
         pyxel.play(0, 0, loop=True)
         self.reset_game()
         pyxel.run(self.update, self.draw)
+
+    # --- 動画再生用の追加メソッド ---
+    def play_video(self, video_id):
+        try:
+            video = js.document.getElementById(video_id)
+            if video:
+                video.style.display = "block"
+                video.play()
+                video.onended = lambda e: self.hide_video(video)
+        except:
+            pass
+
+    def hide_video(self, video):
+        video.style.display = "none"
+        self.video_playing = False
+        # ループ処理
+        self.loop += 1
+        self.stage = 0
+        self.load_stage()
+        self.state = "GAME"
+    # -----------------------------
 
     def reset_game(self):
         self.state = "TITLE"
@@ -138,22 +162,11 @@ class Game:
                         if self.lives <= 0: self.state = "GAMEOVER"
                         else: self.load_stage(); self.start_delay = 30
             case "ENDING":
-                # Web対応版：動画の代わりにタイマーで自動遷移
-                if self.video_playing:
-                    # 10秒(600フレーム)経過したら自動でゲーム画面へ
-                    if pyxel.frame_count - self.video_start_frame > 600:
-                        self.video_playing = False
-                        self.debug_mode = False
-                        self.loop += 1
-                        self.stage = 0
-                        self.load_stage()
-                        self.state = "GAME"
-                else:
+                if not self.video_playing:
                     self.ending_timer += 1
                     if self.ending_timer > 800 and self.is_action_btn():
-                        # 動画再生開始の合図（ここを再生画面にする）
                         self.video_playing = True
-                        self.video_start_frame = pyxel.frame_count
+                        self.play_video("v1")
             case "GAMEOVER":
                 if self.is_action_btn():
                     self.reset_game()
@@ -235,7 +248,6 @@ class Game:
         if self.boss:
             s = abs(math.sin(pyxel.frame_count * 0.2)) * 16 + 8
             pyxel.circ(self.boss[0]*TILE + 4, OY+self.boss[1]*TILE + 4, s, 8); pyxel.circb(self.boss[0]*TILE + 4, OY+self.boss[1]*TILE + 4, s + 2, 9); pyxel.blt(self.boss[0]*TILE, OY+self.boss[1]*TILE, 0, 40, 0, 8, 8, 0)
-        
         if self.invincible_item is not None: pyxel.blt(self.invincible_item[0]*TILE, OY+self.invincible_item[1]*TILE, 0, 64, 0, 8, 8, 0)
         if self.invincible_timer <= 0 or pyxel.frame_count % 4 < 2:
             pyxel.blt(self.p1[0]*TILE, OY+self.p1[1]*TILE, 0, 0, 0, 8, 8, 0); pyxel.blt(self.p2[0]*TILE, OY+self.p2[1]*TILE, 0, 8, 0, 8, 8, 0)
@@ -276,16 +288,12 @@ class Game:
                     for i, text in enumerate(credits):
                         y = 128 - ((t - 250) * 0.5) + (i * 15)
                         if -10 < y < 130: pyxel.text(64 - len(text)*2, y, text, 11)
-                
-                # 文字を中央配置し、点滅させる
                 if t > 800 and not self.video_playing:
                     msg = "PRESS SPACE/A TO BONUS!"
                     col = (pyxel.frame_count % 16) + 1
                     pyxel.text(64 - (len(msg) * 2), 35, msg, col)
                 elif self.video_playing:
-                    # 動画再生中（のふり）
                     pyxel.text(45, 60, "NOW LOADING...", pyxel.frame_count % 15 + 1)
-
             case "GAMEOVER":
                 self.draw_game_elements()
                 pyxel.text(2, 5, f"SCORE:{self.score} STG:{self.stage+1} LIFE:{self.lives}", 8)
