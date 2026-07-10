@@ -1,7 +1,10 @@
 import pyxel
 import random
 import math
-import js  # ブラウザ連携用
+try:
+    import js
+except:
+    js = None
 
 # --- 定数設定 ---
 BTN_A = getattr(pyxel, "GAMEPAD1_A", getattr(pyxel, "GAMEPAD_1_A", -1))
@@ -47,6 +50,9 @@ class Game:
 
     # --- 動画再生用の追加メソッド ---
     def play_video(self, video_id):
+        if js is None:
+            return
+
         try:
             video = js.document.getElementById(video_id)
             if video:
