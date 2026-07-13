@@ -63,7 +63,12 @@ class Game:
                 self.enemies.append(e)
         self.door_open = False
         self.p1, self.p2 = [1, 10], [14, 10]
-        self.boss = [7, 5] if self.stage == 5 else None
+        if self.stage == 5:
+            self.boss = [7, 5]
+            self.boss_hp = 3 + self.loop
+        else:
+            self.boss = None
+
         self.bonus_item = None
         self.bonus_added = False
         self.invincible_timer = 0
@@ -117,12 +122,35 @@ class Game:
                 if self.start_delay > 0: self.start_delay -= 1
                 else:
                     self.move_players()
-                    if pyxel.frame_count % 16 == 0:
-                        target = self.p1 if random.random() < 0.5 else self.p2
-                        if self.boss[0] < target[0]: self.boss[0] += 1
-                        elif self.boss[0] > target[0]: self.boss[0] -= 1
-                        if self.boss[1] < target[1]: self.boss[1] += 1
-                        elif self.boss[1] > target[1]: self.boss[1] -= 1
+                    boss_speed = max(4, 16 - (self.loop - 1))
+
+                if pyxel.frame_count % boss_speed == 0:
+
+                    target = self.p1 if random.random() < 0.5 else self.p2
+
+                if self.boss[0] < target[0]:
+                    self.boss[0] += 1
+                elif self.boss[0] > target[0]:
+                    self.boss[0] -= 1
+
+                if self.boss[1] < target[1]:
+                    self.boss[1] += 1
+                elif self.boss[1] > target[1]:
+                    self.boss[1] -= 1
+
+                # 周回ごとに蜘蛛弾増加
+                if random.random() < min(0.02 * self.loop, 0.25):
+
+                    dx = random.choice([-1, 0, 1])
+                    dy = random.choice([-1, 0, 1])
+
+                if dx != 0 or dy != 0:
+                    self.spiders.append([
+                    self.boss[0],
+                    self.boss[1],
+                    dx,
+                    dy
+                  ])
                     if self.items:
                         for it in self.items[:]:
                             if it == self.p1 or it == self.p2: 
@@ -201,7 +229,12 @@ class Game:
         for e in self.enemies:
             if (e == self.p1 or e == self.p2) and not self.debug_mode and self.invincible_timer <= 0:
                 if self.state == "TITLE": continue
-                self.lives -= 1
+                damage = 1
+
+                if self.loop >= 5:
+                    damage = 2
+
+                self.lives -= damage
                 if self.lives <= 0:
                     self.lives = 0
                     self.state = "GAMEOVER"
@@ -274,3 +307,4 @@ class Game:
                 pyxel.text(23, 80, "PUSH SPACE/A TO RESTART", (pyxel.frame_count % 15) + 1)
 
 Game()
+
