@@ -109,7 +109,6 @@ class Game:
                 if self.input_sequence == ["U", "U", "D", "D"]:
                     self.debug_mode = not self.debug_mode
                     self.input_sequence = []
-                # タイトルのみスタートボタン(もしくは従来の操作)で開始
                 if pyxel.btnp(GAMEPAD_START_ID) or self.is_action_btn():
                     self.reset_game()
                     self.state = "OPENING"
@@ -126,26 +125,31 @@ class Game:
                 else:
                     self.move_players()
                     boss_speed = max(4, 16 - (self.loop - 1))
-                if pyxel.frame_count % boss_speed == 0:
-                    target = self.p1 if random.random() < 0.5 else self.p2
-                if self.boss[0] < target[0]: self.boss[0] += 1
-                elif self.boss[0] > target[0]: self.boss[0] -= 1
-                if self.boss[1] < target[1]: self.boss[1] += 1
-                elif self.boss[1] > target[1]: self.boss[1] -= 1
-                if random.random() < min(0.02 * self.loop, 0.25):
-                    dx = random.choice([-1, 0, 1])
-                    dy = random.choice([-1, 0, 1])
-                    if dx != 0 or dy != 0:
-                        self.spiders.append([self.boss[0], self.boss[1], dx, dy])
-                if self.items:
-                    for it in self.items[:]:
-                        if it == self.p1 or it == self.p2: 
-                            self.items.remove(it); pyxel.play(2, 2)
-                else: self.state = "ENDING"; self.ending_timer = 0
-                if not self.debug_mode and self.invincible_timer <= 0 and (self.boss == self.p1 or self.boss == self.p2): 
-                    self.lives -= 1
-                    if self.lives <= 0: self.state = "GAMEOVER"
-                    else: self.load_stage(); self.start_delay = 30
+                    
+                    if pyxel.frame_count % boss_speed == 0:
+                        self.target = self.p1 if random.random() < 0.5 else self.p2
+                    
+                    target = getattr(self, 'target', self.p1)
+                    
+                    if self.boss[0] < target[0]: self.boss[0] += 1
+                    elif self.boss[0] > target[0]: self.boss[0] -= 1
+                    if self.boss[1] < target[1]: self.boss[1] += 1
+                    elif self.boss[1] > target[1]: self.boss[1] -= 1
+                    
+                    if random.random() < min(0.02 * self.loop, 0.25):
+                        dx = random.choice([-1, 0, 1])
+                        dy = random.choice([-1, 0, 1])
+                        if dx != 0 or dy != 0:
+                            self.spiders.append([self.boss[0], self.boss[1], dx, dy])
+                    if self.items:
+                        for it in self.items[:]:
+                            if it == self.p1 or it == self.p2: 
+                                self.items.remove(it); pyxel.play(2, 2)
+                    else: self.state = "ENDING"; self.ending_timer = 0
+                    if not self.debug_mode and self.invincible_timer <= 0 and (self.boss == self.p1 or self.boss == self.p2): 
+                        self.lives -= 1
+                        if self.lives <= 0: self.state = "GAMEOVER"
+                        else: self.load_stage(); self.start_delay = 30
             case "ENDING":
                 self.ending_timer += 1
                 if self.ending_timer > 800 and self.is_action_btn():
