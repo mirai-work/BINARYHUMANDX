@@ -3,11 +3,13 @@ import random
 import math
 
 # --- 定数設定 ---
-BTN_A = getattr(pyxel, "GAMEPAD1_A", getattr(pyxel, "GAMEPAD_1_A", -1))
-DIR_L = getattr(pyxel, "GAMEPAD1_LEFT", getattr(pyxel, "GAMEPAD_1_LEFT", -1))
-DIR_R = getattr(pyxel, "GAMEPAD1_RIGHT", getattr(pyxel, "GAMEPAD_1_RIGHT", -1))
-DIR_U = getattr(pyxel, "GAMEPAD1_UP", getattr(pyxel, "GAMEPAD_1_UP", -1))
-DIR_D = getattr(pyxel, "GAMEPAD1_DOWN", getattr(pyxel, "GAMEPAD_1_DOWN", -1))
+GAMEPAD_DPAD_UP = pyxel.GAMEPAD1_BUTTON_DPAD_UP
+GAMEPAD_DPAD_DOWN = pyxel.GAMEPAD1_BUTTON_DPAD_DOWN
+GAMEPAD_DPAD_LEFT = pyxel.GAMEPAD1_BUTTON_DPAD_LEFT
+GAMEPAD_DPAD_RIGHT = pyxel.GAMEPAD1_BUTTON_DPAD_RIGHT
+GAMEPAD_A_ID = pyxel.GAMEPAD1_BUTTON_A
+GAMEPAD_START_ID = pyxel.GAMEPAD1_BUTTON_START
+GAMEPAD_Y_ID = pyxel.GAMEPAD1_BUTTON_Y
 
 TILE = 8
 OY = 16
@@ -77,7 +79,7 @@ class Game:
         self.freeze_timer = 0
 
     def is_action_btn(self):
-        return pyxel.btnp(pyxel.KEY_SPACE) or (BTN_A != -1 and pyxel.btnp(BTN_A))
+        return pyxel.btnp(pyxel.KEY_SPACE) or pyxel.btnp(GAMEPAD_A_ID)
 
     def demo_ai(self):
         if pyxel.frame_count % 15 != 0: return 0, 0
@@ -101,8 +103,8 @@ class Game:
                 adx, ady = self.demo_ai()
                 self.move_players(adx, ady)
                 self.update_enemies()
-                if pyxel.btnp(pyxel.KEY_UP) or (DIR_U != -1 and pyxel.btnp(DIR_U)): self.input_sequence.append("U")
-                elif pyxel.btnp(pyxel.KEY_DOWN) or (DIR_D != -1 and pyxel.btnp(DIR_D)): self.input_sequence.append("D")
+                if pyxel.btnp(pyxel.KEY_UP) or pyxel.btnp(GAMEPAD_DPAD_UP): self.input_sequence.append("U")
+                elif pyxel.btnp(pyxel.KEY_DOWN) or pyxel.btnp(GAMEPAD_DPAD_DOWN): self.input_sequence.append("D")
                 if len(self.input_sequence) > 4: self.input_sequence.pop(0)
                 if self.input_sequence == ["U", "U", "D", "D"]:
                     self.debug_mode = not self.debug_mode
@@ -166,10 +168,10 @@ class Game:
         if not is_frozen:
             if auto_dx is not None and auto_dy is not None: dx, dy = auto_dx, auto_dy
             else:
-                if pyxel.btnp(pyxel.KEY_LEFT, 10, 5) or (DIR_L != -1 and pyxel.btnp(DIR_L, 10, 5)): dx, dy = -1, 0
-                elif pyxel.btnp(pyxel.KEY_RIGHT, 10, 5) or (DIR_R != -1 and pyxel.btnp(DIR_R, 10, 5)): dx, dy = 1, 0
-                elif pyxel.btnp(pyxel.KEY_UP, 10, 5) or (DIR_U != -1 and pyxel.btnp(DIR_U, 10, 5)): dx, dy = 0, -1
-                elif pyxel.btnp(pyxel.KEY_DOWN, 10, 5) or (DIR_D != -1 and pyxel.btnp(DIR_D, 10, 5)): dx, dy = 0, 1
+                if pyxel.btnp(pyxel.KEY_LEFT, 10, 5) or pyxel.btnp(GAMEPAD_DPAD_LEFT, 10, 5): dx, dy = -1, 0
+                elif pyxel.btnp(pyxel.KEY_RIGHT, 10, 5) or pyxel.btnp(GAMEPAD_DPAD_RIGHT, 10, 5): dx, dy = 1, 0
+                elif pyxel.btnp(pyxel.KEY_UP, 10, 5) or pyxel.btnp(GAMEPAD_DPAD_UP, 10, 5): dx, dy = 0, -1
+                elif pyxel.btnp(pyxel.KEY_DOWN, 10, 5) or pyxel.btnp(GAMEPAD_DPAD_DOWN, 10, 5): dx, dy = 0, 1
         if dx != 0 or dy != 0:
             for p, d in [(self.p1, dx), (self.p2, -dx)]:
                 nx, ny = p[0] + d, p[1] + dy
