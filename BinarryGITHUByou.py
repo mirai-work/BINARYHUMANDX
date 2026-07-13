@@ -32,7 +32,7 @@ class Game:
         pyxel.sounds[2].set("e2g2", "s", "4", "n", 15)
         pyxel.sounds[3].set("c1", "n", "5", "n", 5)
         pyxel.sounds[4].set("c2e2g2c3", "s", "6", "n", 20)
-        self.debug_mode = False # ここで初期化
+        self.debug_mode = False
         pyxel.play(0, 0, loop=True)
         self.reset_game()
         pyxel.run(self.update, self.draw)
@@ -123,43 +123,26 @@ class Game:
                 else:
                     self.move_players()
                     boss_speed = max(4, 16 - (self.loop - 1))
-
                 if pyxel.frame_count % boss_speed == 0:
-
                     target = self.p1 if random.random() < 0.5 else self.p2
-
-                if self.boss[0] < target[0]:
-                    self.boss[0] += 1
-                elif self.boss[0] > target[0]:
-                    self.boss[0] -= 1
-
-                if self.boss[1] < target[1]:
-                    self.boss[1] += 1
-                elif self.boss[1] > target[1]:
-                    self.boss[1] -= 1
-
-                # 周回ごとに蜘蛛弾増加
+                if self.boss[0] < target[0]: self.boss[0] += 1
+                elif self.boss[0] > target[0]: self.boss[0] -= 1
+                if self.boss[1] < target[1]: self.boss[1] += 1
+                elif self.boss[1] > target[1]: self.boss[1] -= 1
                 if random.random() < min(0.02 * self.loop, 0.25):
-
                     dx = random.choice([-1, 0, 1])
                     dy = random.choice([-1, 0, 1])
-
-                if dx != 0 or dy != 0:
-                    self.spiders.append([
-                    self.boss[0],
-                    self.boss[1],
-                    dx,
-                    dy
-                  ])
-                    if self.items:
-                        for it in self.items[:]:
-                            if it == self.p1 or it == self.p2: 
-                                self.items.remove(it); pyxel.play(2, 2)
-                    else: self.state = "ENDING"; self.ending_timer = 0
-                    if not self.debug_mode and self.invincible_timer <= 0 and (self.boss == self.p1 or self.boss == self.p2): 
-                        self.lives -= 1
-                        if self.lives <= 0: self.state = "GAMEOVER"
-                        else: self.load_stage(); self.start_delay = 30
+                    if dx != 0 or dy != 0:
+                        self.spiders.append([self.boss[0], self.boss[1], dx, dy])
+                if self.items:
+                    for it in self.items[:]:
+                        if it == self.p1 or it == self.p2: 
+                            self.items.remove(it); pyxel.play(2, 2)
+                else: self.state = "ENDING"; self.ending_timer = 0
+                if not self.debug_mode and self.invincible_timer <= 0 and (self.boss == self.p1 or self.boss == self.p2): 
+                    self.lives -= 1
+                    if self.lives <= 0: self.state = "GAMEOVER"
+                    else: self.load_stage(); self.start_delay = 30
             case "ENDING":
                 self.ending_timer += 1
                 if self.ending_timer > 800 and self.is_action_btn():
@@ -173,12 +156,10 @@ class Game:
 
     def move_players(self, auto_dx=None, auto_dy=None):
         if self.invincible_timer > 0: self.invincible_timer -= 1
-        
         prob = max(0.0005, 0.002 - (self.loop - 1) * 0.0003)
         if self.stage < 5 and self.state != "BOSS" and self.invincible_item is None and random.random() < prob:
             rx, ry = random.randint(1, 14), random.randint(1, 10)
             if self.map[ry][rx] == '0': self.invincible_item = [rx, ry]
-        
         is_frozen = self.freeze_timer > 0
         if is_frozen: self.freeze_timer -= 1
         dx = dy = 0
@@ -230,16 +211,10 @@ class Game:
             if (e == self.p1 or e == self.p2) and not self.debug_mode and self.invincible_timer <= 0:
                 if self.state == "TITLE": continue
                 damage = 1
-
-                if self.loop >= 5:
-                    damage = 2
-
+                if self.loop >= 5: damage = 2
                 self.lives -= damage
-                if self.lives <= 0:
-                    self.lives = 0
-                    self.state = "GAMEOVER"
-                else:
-                    self.load_stage(); self.start_delay = 30
+                if self.lives <= 0: self.lives = 0; self.state = "GAMEOVER"
+                else: self.load_stage(); self.start_delay = 30
 
     def draw_game_elements(self):
         for y, r in enumerate(self.map):
@@ -255,7 +230,6 @@ class Game:
         if self.boss:
             s = abs(math.sin(pyxel.frame_count * 0.2)) * 16 + 8
             pyxel.circ(self.boss[0]*TILE + 4, OY+self.boss[1]*TILE + 4, s, 8); pyxel.circb(self.boss[0]*TILE + 4, OY+self.boss[1]*TILE + 4, s + 2, 9); pyxel.blt(self.boss[0]*TILE, OY+self.boss[1]*TILE, 0, 40, 0, 8, 8, 0)
-        
         if self.invincible_item is not None: pyxel.blt(self.invincible_item[0]*TILE, OY+self.invincible_item[1]*TILE, 0, 64, 0, 8, 8, 0)
         if self.invincible_timer <= 0 or pyxel.frame_count % 4 < 2:
             pyxel.blt(self.p1[0]*TILE, OY+self.p1[1]*TILE, 0, 0, 0, 8, 8, 0); pyxel.blt(self.p2[0]*TILE, OY+self.p2[1]*TILE, 0, 8, 0, 8, 8, 0)
@@ -276,10 +250,7 @@ class Game:
             case "GAME" | "BOSS":
                 self.draw_game_elements()
                 pyxel.text(3, 5, f"SCORE:{self.score} LOOP:{self.loop} STG:{self.stage+1} LIFE:{self.lives}", 11)
-                
-                if self.invincible_timer > 0:
-                    pyxel.text(90, 13, f"INV:{self.invincible_timer // 30}", 10)
-                
+                if self.invincible_timer > 0: pyxel.text(90, 13, f"INV:{self.invincible_timer // 30}", 10)
                 if self.debug_mode: pyxel.text(5, 13, "DEBUG MODE", 8)
                 if self.start_delay > 0: pyxel.text(42, 60, "PLAY START!", (pyxel.frame_count // 4) % 15 + 1)
             case "ENDING":
@@ -307,4 +278,3 @@ class Game:
                 pyxel.text(23, 80, "PUSH SPACE/A TO RESTART", (pyxel.frame_count % 15) + 1)
 
 Game()
-
