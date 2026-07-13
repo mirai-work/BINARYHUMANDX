@@ -245,7 +245,7 @@ class Game:
                 pyxel.blt(15, 30, 1, 0, 0, 100, 33)
                 pyxel.rect(20, 95, 88, 25, 0); pyxel.rectb(20, 95, 88, 25, 7)
                 pyxel.text(25, 100, "MOVE: ARROW KEYS", 9); pyxel.text(25, 110, "GET ITEMS & DOOR", 9); pyxel.text(25, 55, "(C)MIRAI WORK/M.T 2026", 6)
-                if pyxel.frame_count % 40 < 20: pyxel.text(25, 80, "PUSH START/SPACE!", 7)
+                if pyxel.frame_count % 40 < 20: pyxel.text(18, 80, "PUSH START/SPACE BUTTON!", 7)
                 if self.debug_mode: pyxel.text(5, 5, "DEBUG MODE", 8)
             case "OPENING":
                 pyxel.text(45, 35, "STORY START", 7); pyxel.blt(30 + (pyxel.frame_count % 60), 60, 0, 0, 0, 8, 8); pyxel.blt(90 - (pyxel.frame_count % 60), 60, 0, 8, 0, 8, 8)
