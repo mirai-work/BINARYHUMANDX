@@ -109,11 +109,11 @@ class Game:
                 if self.input_sequence == ["U", "U", "D", "D"]:
                     self.debug_mode = not self.debug_mode
                     self.input_sequence = []
-                if pyxel.btnp(GAMEPAD_START_ID) or self.is_action_btn():
+                if pyxel.btnp(GAMEPAD_START_ID) or pyxel.btnp(pyxel.KEY_RETURN):
                     self.reset_game()
                     self.state = "OPENING"
             case "OPENING":
-                if self.is_action_btn(): 
+                if pyxel.btnp(GAMEPAD_START_ID) or pyxel.btnp(pyxel.KEY_RETURN): 
                     self.state = "GAME"
                     self.start_delay = 30
             case "GAME":
@@ -263,7 +263,7 @@ class Game:
                 if self.debug_mode: pyxel.text(5, 5, "DEBUG MODE", 8)
             case "OPENING":
                 pyxel.text(45, 35, "STORY START", 7); pyxel.blt(30 + (pyxel.frame_count % 60), 60, 0, 0, 0, 8, 8); pyxel.blt(90 - (pyxel.frame_count % 60), 60, 0, 8, 0, 8, 8)
-                pyxel.text(25, 80, "PRESS SPACE/A BUTTON!", pyxel.frame_count % 16)
+                pyxel.text(18, 80, "PRESS SPACE/START BUTTON!", pyxel.frame_count % 16)
             case "GAME" | "BOSS":
                 self.draw_game_elements()
                 pyxel.text(3, 5, f"SCORE:{self.score} LOOP:{self.loop} STG:{self.stage+1} LIFE:{self.lives}", 11)
