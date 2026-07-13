@@ -121,24 +121,30 @@ class Game:
                 elif self.stage == 5: self.state = "BOSS"
                 else: self.move_players(); self.update_enemies()
             case "BOSS":
-                if self.start_delay > 0: self.start_delay -= 1
-                else:
+                 if self.start_delay > 0:
+                    self.start_delay -= 1
+                 else:
                     self.move_players()
-                    # 追尾頻度: ループが進むほど頻繁にターゲットを変える
-                    boss_interval = max(4, 16 - (self.loop - 1) * 2)
-                    
-                    if pyxel.frame_count % boss_interval == 0:
+                
+                    if pyxel.frame_count % 30 == 0:
                         self.target = self.p1 if random.random() < 0.5 else self.p2
-                    
-                    target = getattr(self, 'target', self.p1)
-                    
-                    # 移動速度: ループが進むほど速く（1 or 2）
-                    move_speed = 1 if self.loop < 3 else 2
-                    
-                    if self.boss[0] < target[0]: self.boss[0] += move_speed
-                    elif self.boss[0] > target[0]: self.boss[0] -= move_speed
-                    if self.boss[1] < target[1]: self.boss[1] += move_speed
-                    elif self.boss[1] > target[1]: self.boss[1] -= move_speed
+
+                    target = getattr(self, "target", self.p1)
+
+                    # ボス移動速度
+                    boss_move_interval = max(8, 20 - (self.loop - 1) * 2)
+
+                    if pyxel.frame_count % boss_move_interval == 0:
+
+                        if self.boss[0] < target[0]:
+                            self.boss[0] += 1
+                        elif self.boss[0] > target[0]:
+                            self.boss[0] -= 1
+
+                        if self.boss[1] < target[1]:
+                            self.boss[1] += 1
+                        elif self.boss[1] > target[1]:
+                            self.boss[1] -= 1
                     
                     if random.random() < min(0.02 * self.loop, 0.25):
                         dx = random.choice([-1, 0, 1])
