@@ -40,9 +40,7 @@ class Game:
 
         # --- BGMの設定 ---
         pyxel.sounds[5].set("c2e2g2c3e3g3c4e4c2e2g2c3e3g3c4e4d2f2a2d3f3a3d4f4d2f2a2d3f3a3d4f4", "p", "5", "v", 8)
-        pyxel.sounds[6].set("c2e2g2c3d2f#2a2d3e2g#2b2e3f2a2c3f3g2b2d3g3c3e3g3c4", "s", "6", "n", 4)
-        
-        # メルヘンチックなクラシック風BGM
+        pyxel.sounds[6].set("g2b2d3g3a2c3e3a3f2a2c3f3e2g2b2e3", "s", "6", "n", 8)
         pyxel.sounds[7].set("e3g3c4b3a3g3a3b3c4g3e3g3a3g3f3e3d3e3f3g3a3b3c4d4e4f4e4d4c4b3c4", "p", "4", "n", 12)
         pyxel.sounds[8].set("c4e4g4e4a3c4e4c4g3b3d4b3f3a3c4a3e3g3b3g3", "p", "4", "v", 10)
         
@@ -65,7 +63,7 @@ class Game:
                 target = 5
             case "OPENING":
                 target = 6
-                loop = False 
+                loop = True # BGMが流れるように修正
             case "GAME":
                 target = 11 if self.invincible_timer > 0 else 7
             case "BOSS":
@@ -169,32 +167,32 @@ class Game:
                 elif self.stage == 5: self.state = "BOSS"
                 else: self.move_players(); self.update_enemies()
             case "BOSS":
-                 if self.start_delay > 0:
-                    self.start_delay -= 1
-                 else:
-                    self.move_players()
-                    if pyxel.frame_count % 30 == 0:
-                        self.target = self.p1 if random.random() < 0.5 else self.p2
-                    target = getattr(self, "target", self.p1)
-                    boss_move_interval = max(8, 20 - (self.loop - 1) * 2)
-                    if pyxel.frame_count % boss_move_interval == 0:
-                        if self.boss[0] < target[0]: self.boss[0] += 1
-                        elif self.boss[0] > target[0]: self.boss[0] -= 1
-                        if self.boss[1] < target[1]: self.boss[1] += 1
-                        elif self.boss[1] > target[1]: self.boss[1] -= 1
-                    if random.random() < min(0.02 * self.loop, 0.25):
-                        dx = random.choice([-1, 0, 1])
-                        dy = random.choice([-1, 0, 1])
-                        if dx != 0 or dy != 0: self.spiders.append([self.boss[0], self.boss[1], dx, dy])
-                    if self.items:
-                        for it in self.items[:]:
-                            if it == self.p1 or it == self.p2: 
-                                self.items.remove(it); pyxel.play(2, 2)
-                    else: self.state = "ENDING"; self.ending_timer = 0
-                    if not self.debug_mode and self.invincible_timer <= 0 and (self.boss == self.p1 or self.boss == self.p2): 
-                        self.lives -= 1
-                        if self.lives <= 0: self.state = "GAMEOVER"
-                        else: self.load_stage(); self.start_delay = 30
+               if self.start_delay > 0:
+                  self.start_delay -= 1
+               else:
+                  self.move_players()
+                  if pyxel.frame_count % 30 == 0:
+                      self.target = self.p1 if random.random() < 0.5 else self.p2
+                  target = getattr(self, "target", self.p1)
+                  boss_move_interval = max(8, 20 - (self.loop - 1) * 2)
+                  if pyxel.frame_count % boss_move_interval == 0:
+                      if self.boss[0] < target[0]: self.boss[0] += 1
+                      elif self.boss[0] > target[0]: self.boss[0] -= 1
+                      if self.boss[1] < target[1]: self.boss[1] += 1
+                      elif self.boss[1] > target[1]: self.boss[1] -= 1
+                  if random.random() < min(0.02 * self.loop, 0.25):
+                      dx = random.choice([-1, 0, 1])
+                      dy = random.choice([-1, 0, 1])
+                      if dx != 0 or dy != 0: self.spiders.append([self.boss[0], self.boss[1], dx, dy])
+                  if self.items:
+                      for it in self.items[:]:
+                          if it == self.p1 or it == self.p2: 
+                              self.items.remove(it); pyxel.play(2, 2)
+                  else: self.state = "ENDING"; self.ending_timer = 0
+                  if not self.debug_mode and self.invincible_timer <= 0 and (self.boss == self.p1 or self.boss == self.p2): 
+                      self.lives -= 1
+                      if self.lives <= 0: self.state = "GAMEOVER"
+                      else: self.load_stage(); self.start_delay = 30
             case "ENDING":
                 self.ending_timer += 1
                 if self.ending_timer > 800 and self.is_action_btn():
@@ -265,7 +263,6 @@ class Game:
                 damage = 1
                 if self.loop >= 5: damage = 2
                 self.lives -= damage
-                # BGM停止処理を追加
                 pyxel.stop(0)
                 self.current_bgm = -1
                 if self.lives <= 0: self.lives = 0; self.state = "GAMEOVER"
