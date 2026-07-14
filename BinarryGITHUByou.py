@@ -318,7 +318,7 @@ class Game:
             case "GAME" | "BOSS":
                 self.draw_game_elements()
                 life_text = 'IF' if self.debug_mode else self.lives
-                pyxel.text(3, 5, f"SCORE:{self.score} LOOP:{self.loop} STG:{self.stage+1} LIFE:{life_text}", 11)
+                pyxel.text(2, 5, f"SCORE:{self.score} LOOP:{self.loop} STG:{self.stage+1} LIFE:{life_text}", 11)
                 if self.invincible_timer > 0: pyxel.text(90, 13, f"INV:{self.invincible_timer // 30}", 10)
                 if self.debug_mode: pyxel.text(5, 13, "DEBUG MODE", 8)
                 if self.start_delay > 0: pyxel.text(42, 60, "PLAY START!", (pyxel.frame_count // 4) % 15 + 1)
