@@ -13,7 +13,7 @@ GAMEPAD_Y_ID = pyxel.GAMEPAD1_BUTTON_Y
 
 TILE = 8
 OY = 16
-#横でタイトルステージ1～6　座標'1'壁 (Wall)プレイヤーが通れない障害物'2'ドア (Door)ステージクリア条件となる出口'3'アイテム (Item)プレイヤーが取るとスコアが入るもの'4'敵 (Enemy)触れるとダメージを受ける敵キャラ'0'通路 (Floor)プレイヤーが自由に移動できる空間
+#横でタイトルステージ1～6 座標'1'壁 (Wall)プレイヤーが通れない障害物'2'ドア (Door)ステージクリア条件となる出口'3'アイテム (Item)プレイヤーが取るとスコアが入るもの'4'敵 (Enemy)触れるとダメージを受ける敵キャラ'0'通路 (Floor)プレイヤーが自由に移動できる空間
 STAGES = [
     ["1111111111111111","1000000110000001","1011100220011101","1010301111030101","1030000000000301","1011110110111101","1000000000000001","1011011111101101","1000004004000001","1011110110111101","1000000000000001","1111111111111111"],
     ["1111111111111111","1030000110000301","1111100220011111","1000001111000001","1011111001111101","1004000000004001","1011111001111101","1000000000000001","1111101111011111","1000000330000001","1011101111011101","1111111111111111"],
@@ -30,37 +30,25 @@ class Game:
         pyxel.images[1].load(0, 0, "image_LOGO02.png")
         
         # --- 効果音の設定 ---
-        # 1: 移動音 (軽快で邪魔にならない短い音)
         pyxel.sounds[1].set("a3", "p", "2", "n", 2)
-        # 2: 通常アイテム取得 (キラキラ)
         pyxel.sounds[2].set("c3e3g3c4", "s", "5", "n", 4)
-        # 3: ダメージ・凍結音 (激しいノイズ)
         pyxel.sounds[3].set("g1c1g0", "n", "7", "f", 6)
-        # 4: ステージクリア・ドアオープン音 (ファンファーレ)
         pyxel.sounds[4].set("c2e2g2c3e3g3c4e4", "s", "6", "n", 5)
-        # 13: 無敵アイテム取得音 (駆け上がる音階 ※c5を削ってc4を最高音に修正)
         pyxel.sounds[13].set("c2e2g2c3e3g3c4", "s", "7", "n", 3)
-        # 14: 地球脱出・ロケット発射音 (ノイズで轟音)
         pyxel.sounds[14].set("a0a0a0a0a0a0a0a0", "n", "7", "f", 15)
-        # 15: 1UPアイテム取得音 (明るいメロディ)
         pyxel.sounds[15].set("e3g3e4c4d4g4", "p", "6", "n", 6)
 
         # --- BGMの設定 ---
-        # 5: タイトルの音楽 (32音の壮大なアルペジオループ)
         pyxel.sounds[5].set("c2e2g2c3e3g3c4e4c2e2g2c3e3g3c4e4d2f2a2d3f3a3d4f4d2f2a2d3f3a3d4f4", "p", "5", "v", 8)
-        # 6: ゲームスタートの音楽 (OPENING) (ヒロイックな上昇音階)
         pyxel.sounds[6].set("c2e2g2c3d2f#2a2d3e2g#2b2e3f2a2c3f3g2b2d3g3c3e3g3c4", "s", "6", "n", 4)
-        # 7: 各ステージの音楽 (GAME) (リズミカルなベースラインとメロディ)
-        pyxel.sounds[7].set("c2c3g2c3d2d3a2d3e2e3b2e3f2f3c3f3c2c3g2c3d2d3a2d3g2g3d3g3c2c3g2c3", "t", "5", "n", 10)
-        # 8: ボスの音楽 (BOSS) (速くて緊迫感のある不協和音ループ)
-        pyxel.sounds[8].set("c2d#2c2d#2f#2a2f#2a2c3d#3c3d#3f#3a3f#3a3", "s", "6", "v", 5)
-        # 9: エンディング前編BGM (地球を眺める静かなメロディ)
+        
+        # メルヘンチックなクラシック風BGM
+        pyxel.sounds[7].set("e3g3c4b3a3g3a3b3c4g3e3g3a3g3f3e3d3e3f3g3a3b3c4d4e4f4e4d4c4b3c4", "p", "4", "n", 12)
+        pyxel.sounds[8].set("c4e4g4e4a3c4e4c4g3b3d4b3f3a3c4a3e3g3b3g3", "p", "4", "v", 10)
+        
         pyxel.sounds[9].set("c3e3g3c4b2d3g3b3a2c3e3a3g2b2d3g3f2a2c3f3e2g2c3e3d2f2a2d3g2b2d3g3", "p", "4", "f", 16)
-        # 10: GAMEOVERの音楽 (悲しい半音階降下)
         pyxel.sounds[10].set("c3b2a#2a2g#2g2f#2f2e2d#2d2c#2c2", "t", "5", "f", 12)
-        # 11: 無敵BGM (アップテンポで無敵感のあるループ)
         pyxel.sounds[11].set("c3e3g3c4a2c3e3a3f2a2c3f3g2b2d3g3", "s", "6", "n", 6)
-        # 12: 地球脱出BGM (宇宙へ飛び立つ壮大な展開)
         pyxel.sounds[12].set("c3g3e4c4d3a3f4d4e3b3g4e4f3c4a4f4", "p", "5", "v", 12)
 
         self.debug_mode = False
@@ -69,7 +57,6 @@ class Game:
         pyxel.run(self.update, self.draw)
 
     def update_music(self):
-        """状態に応じたBGM切り替え処理"""
         target = -1
         loop = True
         
@@ -78,21 +65,18 @@ class Game:
                 target = 5
             case "OPENING":
                 target = 6
-                loop = False # 1回だけ再生
+                loop = False 
             case "GAME":
-                # 無敵状態のBGM切り替え
                 target = 11 if self.invincible_timer > 0 else 7
             case "BOSS":
-                # ボス戦中の無敵状態BGM切り替え
                 target = 11 if self.invincible_timer > 0 else 8
             case "ENDING":
-                # ロケット発射時(t=180)に発射音を鳴らし、脱出BGMへ切り替え
                 if self.ending_timer == 180:
                     pyxel.play(3, 14)
                 target = 12 if self.ending_timer >= 180 else 9
             case "GAMEOVER":
                 target = 10
-                loop = False # 1回だけ再生
+                loop = False 
                 
         if target != self.current_bgm:
             self.current_bgm = target
@@ -254,9 +238,9 @@ class Game:
                 if self.stage in [3, 4] and not self.bonus_added: self.bonus_item = [7, 4]; self.bonus_added = True
                 self.door_open = True
             if self.bonus_item and (self.bonus_item == self.p1 or self.bonus_item == self.p2):
-                self.lives += 1; self.bonus_item = None; pyxel.play(2, 15) # 専用の1UP音に変更
+                self.lives += 1; self.bonus_item = None; pyxel.play(2, 15)
             if self.invincible_item and (self.invincible_item == self.p1 or self.invincible_item == self.p2):
-                self.invincible_timer = 300; self.invincible_item = None; pyxel.play(2, 13) # 専用の無敵取得音に変更
+                self.invincible_timer = 300; self.invincible_item = None; pyxel.play(2, 13)
             if self.door_open and self.map[self.p1[1]][self.p1[0]] == '2' and self.map[self.p2[1]][self.p2[0]] == '2':
                 if self.state != "TITLE": pyxel.play(3, 4)
                 self.stage += 1; self.load_stage(); self.start_delay = 30
@@ -281,6 +265,9 @@ class Game:
                 damage = 1
                 if self.loop >= 5: damage = 2
                 self.lives -= damage
+                # BGM停止処理を追加
+                pyxel.stop(0)
+                self.current_bgm = -1
                 if self.lives <= 0: self.lives = 0; self.state = "GAMEOVER"
                 else: self.load_stage(); self.start_delay = 30
 
