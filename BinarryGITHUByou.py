@@ -170,6 +170,7 @@ class Game:
                 elif pyxel.btnp(pyxel.KEY_DOWN) or pyxel.btnp(GAMEPAD_DPAD_DOWN): self.input_sequence.append("D")
                 if len(self.input_sequence) > 4: self.input_sequence.pop(0)
                 if self.input_sequence == ["U", "U", "D", "D"]:
+                    if not self.debug_mode: pyxel.play(3, 13)
                     self.debug_mode = not self.debug_mode
                     self.input_sequence = []
                 if pyxel.btnp(GAMEPAD_START_ID) or pyxel.btnp(pyxel.KEY_RETURN):
@@ -316,7 +317,8 @@ class Game:
                 pyxel.text(18, 80, "PRESS ENTER/START BUTTON!", pyxel.frame_count % 16)
             case "GAME" | "BOSS":
                 self.draw_game_elements()
-                pyxel.text(3, 5, f"SCORE:{self.score} LOOP:{self.loop} STG:{self.stage+1} LIFE:{self.lives}", 11)
+                life_text = '∞' if self.debug_mode else self.lives
+                pyxel.text(3, 5, f"SCORE:{self.score} LOOP:{self.loop} STG:{self.stage+1} LIFE:{life_text}", 11)
                 if self.invincible_timer > 0: pyxel.text(90, 13, f"INV:{self.invincible_timer // 30}", 10)
                 if self.debug_mode: pyxel.text(5, 13, "DEBUG MODE", 8)
                 if self.start_delay > 0: pyxel.text(42, 60, "PLAY START!", (pyxel.frame_count // 4) % 15 + 1)
@@ -340,7 +342,8 @@ class Game:
                 pyxel.text(10, 120, "PRESS SPACE/A TO CONTINUE" if t > 800 else "", 7)
             case "GAMEOVER":
                 self.draw_game_elements()
-                pyxel.text(5, 5, f"SCORE:{self.score} STG:{self.stage+1} LIFE:{self.lives}", 8)
+                life_text = '∞' if self.debug_mode else self.lives
+                pyxel.text(5, 5, f"SCORE:{self.score} STG:{self.stage+1} LIFE:{life_text}", 8)
                 pyxel.text(45, 60, "GAME OVER", 8)
                 pyxel.text(23, 80, "PUSH SPACE/A TO RESTART", (pyxel.frame_count % 15) + 1)
 
