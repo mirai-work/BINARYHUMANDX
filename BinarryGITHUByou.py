@@ -29,15 +29,59 @@ class Game:
         pyxel.load("my_resourcekakou.pyxres")
         pyxel.images[1].load(0, 0, "image_LOGO02.png")
         
+        # --- 既存のサウンド（効果音など） ---
         pyxel.sounds[0].set("c3e3g3c4e3c3g3e3f3a3c4f4a3f3c4a3", "p", "4", "n", 15)
         pyxel.sounds[1].set("a1", "n", "2", "n", 10)
         pyxel.sounds[2].set("e2g2", "s", "4", "n", 15)
         pyxel.sounds[3].set("c1", "n", "5", "n", 5)
         pyxel.sounds[4].set("c2e2g2c3", "s", "6", "n", 20)
+        
+        # --- 追加した各シーン専用の音楽 ---
+        # 5: タイトルの音楽
+        pyxel.sounds[5].set("c3e3g3c4e3c3g3e3f3a3c4f4a3f3c4a3", "p", "4", "n", 15)
+        # 6: ゲームスタートの音楽 (OPENING)
+        pyxel.sounds[6].set("c3e3g3c4", "t", "5", "n", 10)
+        # 7: 各ステージの音楽 (GAME)
+        pyxel.sounds[7].set("e2e2a2a2g2g2e2e2", "s", "4", "n", 20)
+        # 8: ボスの音楽 (BOSS)
+        pyxel.sounds[8].set("c2c2d2d2d#2d#2f2f2", "t", "5", "f", 12)
+        # 9: エンディングの音楽 (ENDING)
+        pyxel.sounds[9].set("c3e3g3c4g3e3c3g2", "p", "4", "f", 25)
+        # 10: GAMEOVERの音楽
+        pyxel.sounds[10].set("c3g2d#2c2", "n", "5", "f", 30)
+
         self.debug_mode = False
-        pyxel.play(0, 0, loop=True)
+        self.current_bgm = -1
         self.reset_game()
         pyxel.run(self.update, self.draw)
+
+    def update_music(self):
+        """状態に応じたBGM切り替え処理"""
+        target = -1
+        loop = True
+        
+        match self.state:
+            case "TITLE":
+                target = 5
+            case "OPENING":
+                target = 6
+                loop = False # 1回だけ再生
+            case "GAME":
+                target = 7
+            case "BOSS":
+                target = 8
+            case "ENDING":
+                target = 9
+            case "GAMEOVER":
+                target = 10
+                loop = False # 1回だけ再生
+                
+        if target != self.current_bgm:
+            self.current_bgm = target
+            if target == -1:
+                pyxel.stop(0)
+            else:
+                pyxel.play(0, target, loop=loop)
 
     def reset_game(self):
         self.state = "TITLE"
@@ -98,6 +142,7 @@ class Game:
         return dx, dy
 
     def update(self):
+        self.update_music()
         match self.state:
             case "TITLE":
                 adx, ady = self.demo_ai()
@@ -125,32 +170,19 @@ class Game:
                     self.start_delay -= 1
                  else:
                     self.move_players()
-                
                     if pyxel.frame_count % 30 == 0:
                         self.target = self.p1 if random.random() < 0.5 else self.p2
-
                     target = getattr(self, "target", self.p1)
-
-                    # ボス移動速度
                     boss_move_interval = max(8, 20 - (self.loop - 1) * 2)
-
                     if pyxel.frame_count % boss_move_interval == 0:
-
-                        if self.boss[0] < target[0]:
-                            self.boss[0] += 1
-                        elif self.boss[0] > target[0]:
-                            self.boss[0] -= 1
-
-                        if self.boss[1] < target[1]:
-                            self.boss[1] += 1
-                        elif self.boss[1] > target[1]:
-                            self.boss[1] -= 1
-                    
+                        if self.boss[0] < target[0]: self.boss[0] += 1
+                        elif self.boss[0] > target[0]: self.boss[0] -= 1
+                        if self.boss[1] < target[1]: self.boss[1] += 1
+                        elif self.boss[1] > target[1]: self.boss[1] -= 1
                     if random.random() < min(0.02 * self.loop, 0.25):
                         dx = random.choice([-1, 0, 1])
                         dy = random.choice([-1, 0, 1])
-                        if dx != 0 or dy != 0:
-                            self.spiders.append([self.boss[0], self.boss[1], dx, dy])
+                        if dx != 0 or dy != 0: self.spiders.append([self.boss[0], self.boss[1], dx, dy])
                     if self.items:
                         for it in self.items[:]:
                             if it == self.p1 or it == self.p2: 
@@ -259,11 +291,11 @@ class Game:
                 pyxel.blt(15, 30, 1, 0, 0, 100, 33)
                 pyxel.rect(20, 95, 88, 25, 0); pyxel.rectb(20, 95, 88, 25, 7)
                 pyxel.text(25, 100, "MOVE: ARROW KEYS", 9); pyxel.text(25, 110, "GET ITEMS & DOOR", 9); pyxel.text(25, 55, "(C)MIRAI WORK/M.T 2026", 6)
-                if pyxel.frame_count % 40 < 20: pyxel.text(18, 80, "PUSH START/SPACE BUTTON!", 7)
+                if pyxel.frame_count % 40 < 20: pyxel.text(18, 80, "PUSH ENTER/START BUTTON!", 7)
                 if self.debug_mode: pyxel.text(5, 5, "DEBUG MODE", 8)
             case "OPENING":
                 pyxel.text(45, 35, "STORY START", 7); pyxel.blt(30 + (pyxel.frame_count % 60), 60, 0, 0, 0, 8, 8); pyxel.blt(90 - (pyxel.frame_count % 60), 60, 0, 8, 0, 8, 8)
-                pyxel.text(18, 80, "PRESS SPACE/START BUTTON!", pyxel.frame_count % 16)
+                pyxel.text(18, 80, "PRESS ENTER/START BUTTON!", pyxel.frame_count % 16)
             case "GAME" | "BOSS":
                 self.draw_game_elements()
                 pyxel.text(3, 5, f"SCORE:{self.score} LOOP:{self.loop} STG:{self.stage+1} LIFE:{self.lives}", 11)
