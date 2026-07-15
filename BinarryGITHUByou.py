@@ -38,6 +38,17 @@ class Game:
         pyxel.sounds[14].set("c0c0c0c0", "n", "7", "f", 16)
         pyxel.sounds[15].set("g4c4", "p", "7", "n", 12)
         
+        # 演出用追加サウンド（ギューーッ、ドッッッッボーン！、ブォォォーン！）
+        # Pyxelの最大オクターブ仕様(4まで)に合わせて全体を1オクターブ下げました
+        pyxel.sounds[16].set("c1e1g1c2e2g2c3e3g3c4e4g4", "s", "7", "s", 90)
+        pyxel.sounds[17].set("a0a0a0a0a0a0a0a0", "n", "7", "f", 80)
+        pyxel.sounds[18].set("c1c1c1c1c1c1", "n", "5", "f", 100)
+        
+        # エンドロール用の超豪華3和音BGM（最大演出）
+        pyxel.sounds[12].set("c2e2g2c3e3g3c4e4g4d2f2a2d3f3a3d4f4a4e2g2b2e3g3b3e4g4b4f2a2c3f3a3c4f4a4c4", "p", "6", "n", 20)
+        pyxel.sounds[19].set("c2g2c3g2d2a2d3a2e2b2e3b2f2c3f3c3", "t", "5", "n", 20)
+        pyxel.sounds[20].set("c1c1c1c1d1d1d1d1e1e1e1e1f1f1f1f1", "s", "7", "n", 20)
+        
         pyxel.sounds[5].set("c3e3g3e3c3e3g3e3", "p", "6", "n", 20)
         pyxel.sounds[6].set("c3d3e3f3g3a3g3e3", "p", "6", "n", 20)
         pyxel.sounds[7].set("c3g2c3g2c3e3g3e3", "p", "5", "n", 20)
@@ -45,7 +56,6 @@ class Game:
         pyxel.sounds[9].set("e3c3e3g3a3g3e3c3", "p", "6", "n", 20)
         pyxel.sounds[10].set("c3b2a2g2f2e2d2c2", "p", "4", "f", 20)
         pyxel.sounds[11].set("c3g3c4g3c3g3c4g3", "p", "7", "n", 20)
-        pyxel.sounds[12].set("c3e3g3c4e4g4c4g4", "p", "6", "n", 30)
 
         self.debug_mode = False
         self.current_bgm = -1
@@ -66,20 +76,28 @@ class Game:
                 target = 11 if self.invincible_timer > 0 else 7
             case "BOSS":
                 target = 11 if self.invincible_timer > 0 else 8
+            case "BOSS_DEFEAT":
+                target = -1
             case "ENDING":
-                if self.ending_timer == 180:
-                    pyxel.play(3, 14)
-                target = 12 if self.ending_timer >= 180 else 9
+                target = 12
             case "GAMEOVER":
                 target = 10
                 loop = False
                 
         if target != self.current_bgm:
+            # 豪華エンディングから抜けた場合は追加チャンネルも止める
+            if self.current_bgm == 12:
+                pyxel.stop(1)
+                pyxel.stop(2)
             self.current_bgm = target
             if target == -1:
                 pyxel.stop(0)
             else:
                 pyxel.play(0, target, loop=loop)
+                # エンドロール時のみ3和音を奏でる
+                if target == 12:
+                    pyxel.play(1, 19, loop=loop)
+                    pyxel.play(2, 20, loop=loop)
 
     def reset_game(self):
         self.state = "TITLE"
@@ -88,6 +106,7 @@ class Game:
         self.stage = 0
         self.loop = 1
         self.ending_timer = 0
+        self.defeat_timer = 0
         self.start_delay = 30
         self.input_sequence = []
         self.invincible_timer = 0
@@ -193,7 +212,6 @@ class Game:
                     self.start_delay -= 1
                 else:
                     self.move_players()
-                    # Boss movement logic
                     if pyxel.frame_count % 30 == 0:
                         self.target = self.p1 if random.random() < 0.5 else self.p2
                     
@@ -217,7 +235,12 @@ class Game:
                         for it in self.items[:]:
                             if it == self.p1 or it == self.p2:
                                 self.items.remove(it)
+                                self.boss_hp -= 1
                                 pyxel.play(2, 2)
+                                if self.boss_hp <= 0:
+                                    self.state = "BOSS_DEFEAT"
+                                    self.defeat_timer = 0
+                                    pyxel.play(3, 16)
                     else:
                         if self.state != "ENDING":
                             self.state = "ENDING"
@@ -236,7 +259,21 @@ class Game:
                         else:
                             self.load_stage()
                             self.start_delay = 30
+            
+            case "BOSS_DEFEAT":
+                self.defeat_timer += 1
 
+                self.boss = [7, 6]
+
+                if self.defeat_timer == 90:
+                    pyxel.play(3, 17)
+
+                if self.defeat_timer > 150:
+                    self.state = "ENDING"
+                    self.ending_timer = 0
+                    pyxel.stop(0)
+                    pyxel.play(3, 18)
+    
             case "ENDING":
                 self.ending_timer += 1
                 if self.ending_timer > 800 and self.is_action_btn():
@@ -371,7 +408,7 @@ class Game:
         for s in self.spiders:
             pyxel.blt(s[0]*TILE, OY+s[1]*TILE, 0, 48, 0, 8, 8, 0)
         
-        if self.boss:
+        if self.boss and self.state != "BOSS_DEFEAT":
             s = abs(math.sin(pyxel.frame_count * 0.2)) * 16 + 8
             pyxel.circ(self.boss[0]*TILE + 4, OY+self.boss[1]*TILE + 4, s, 8)
             pyxel.circb(self.boss[0]*TILE + 4, OY+self.boss[1]*TILE + 4, s + 2, 9)
@@ -411,7 +448,6 @@ class Game:
                 self.draw_game_elements()
                 life_text = 'I' if self.debug_mode else self.lives
                 pyxel.text(2, 5, f"SCORE:{self.score} LOOP:{self.loop} STG:{self.stage+1} LIFE:{life_text}", 11)
-                
                 if self.invincible_timer > 0:
                     pyxel.text(90, 13, f"INV:{self.invincible_timer // 30}", 10)
                 if self.debug_mode:
@@ -419,42 +455,91 @@ class Game:
                 if self.start_delay > 0:
                     pyxel.text(42, 60, "PLAY START!", (pyxel.frame_count // 4) % 15 + 1)
             
+            case "BOSS_DEFEAT":
+                self.draw_game_elements()
+                t = self.defeat_timer
+                if t < 90:
+                    s = 1 + (t / 6.0)
+
+                    cx, cy = 0, 0
+                    if t > 60:
+                        cx, cy = random.randint(-3, 3), random.randint(-3, 3)
+                    
+                    real_w = 8 * s
+                    real_h = 8 * s
+
+                    draw_x = 64 - real_w / 2 + cx
+                    draw_y = 64 - real_h / 2 + cy
+                                      
+
+                    
+                    pyxel.blt(int(draw_x), int(draw_y), 0, 40, 0, 8, 8, 0, scale=s)
+                else:
+                    # 豪快な大爆発エフェクト
+                    explosion_t = t - 90
+                    center_x = 64
+                    center_y = 64
+                    for i in range(32):
+                        angle = i * (math.pi * 2 / 32)
+                        dist = explosion_t * 4.0 + random.random() * 12
+                        r = max(0, 30 - explosion_t * 0.5)
+                        if r > 0:
+                            col = random.choice([7, 8, 9, 10]) # 白・赤・オレンジ・黄の爆煙
+                            pyxel.circ(center_x + math.cos(angle)*dist,center_y + math.sin(angle)*dist,r, col)
+                    # 爆発中心の閃光
+                    if explosion_t < 20:
+                        pyxel.circ(center_x,center_y,40 - explosion_t * 2,7)
+
             case "ENDING":
                 t = self.ending_timer
-                if t < 150:
-                    s = abs(math.sin(t * 0.2)) * 40 + 10
-                    pyxel.circ(64, 64, s, (t // 5) % 16)
-                    pyxel.circb(64, 64, s + 5, 8)
-                    pyxel.blt(60, 60, 0, 40, 0, 8, 8, 0)
-                elif t < 200:
-                    pyxel.circ(64, 64, (t - 150) * 2, 10)
-                    pyxel.circ(64, 64, (t - 150) * 1.5, 9)
-                    pyxel.circ(64, 64, (t - 150) * 1, 7)
+                # 大量の降り注ぐ星
+                for i in range(40):
+                    px = (i * 37 + t * 2) % 128
+                    py = (i * 53 + t * (2 + i % 3)) % 128
+                    pyxel.pset(px, py, random.choice([5, 6, 7]))
                 
-                if t > 180:
-                    for i in range(40):
-                        x = (i * 37) % 128
-                        speed = 1 + (i % 3)
-                        y = (i * 53 + (t - 180) * speed) % 128
-                        pyxel.pset(x, y, 7 if speed == 3 else (6 if speed == 2 else 5))
+                # だんだん小さくなるリアルな地球
+                earth_r = max(0, 100 - t * 0.2)
+                if earth_r > 0:
+                    ex, ey = 64, 128 # 画面下部中央
+                    # 海
+                    pyxel.circ(ex, ey, earth_r, 1)
+                    pyxel.circ(ex, ey, earth_r * 0.95, 12)
+                    # 大陸（リアルに見せるための模様）
+                    pyxel.circ(ex - earth_r*0.2, ey - earth_r*0.3, earth_r*0.4, 3)
+                    pyxel.circ(ex + earth_r*0.4, ey + earth_r*0.1, earth_r*0.35, 11)
+                    pyxel.circ(ex - earth_r*0.5, ey + earth_r*0.4, earth_r*0.25, 3)
+                    pyxel.circ(ex + earth_r*0.1, ey - earth_r*0.6, earth_r*0.2, 11)
+                    # 大気圏の輝き
+                    pyxel.circb(ex, ey, earth_r, 5)
+                
+                # 脱出するポッド（主人公）
+                pod_y = 128 - (t * 0.5)
+                pod_x = 60 
+                
+                # スラスターの炎
+                if t % 4 < 2:
+                    pyxel.rect(pod_x + 3, pod_y + 8, 2, random.randint(3, 6), 9)
+                    pyxel.rect(pod_x + 11, pod_y + 8, 2, random.randint(3, 6), 9)
                     
-                    earth_y = 100 + (t - 180) * 0.2
-                    pyxel.circ(64, earth_y, 40, 1)
-                    pyxel.circ(50, earth_y - 10, 10, 3)
-                    pyxel.circ(70, earth_y + 10, 15, 3)
-                    pod_y = 64 - (t - 180) * 0.3
-                    pyxel.blt(56, pod_y, 0, 0, 0, 8, 8, 0)
-                    pyxel.blt(64, pod_y, 0, 8, 0, 8, 8, 0)
+                pyxel.blt(pod_x, pod_y, 0, 0, 0, 8, 8, 0)
+                pyxel.blt(pod_x + 8, pod_y, 0, 8, 0, 8, 8, 0)
                 
-                if t > 250:
-                    credits = ["BINARY HUMAN DX", "PRODUCER: M.T", "TEAM T.D", "(C)MIRAI WORK/M.T 2026", "THANK YOU FOR PLAYING!"]
-                    for i, text in enumerate(credits):
-                        y = 128 - ((t - 250) * 0.5) + (i * 15)
-                        if -10 < y < 130:
-                            pyxel.text(64 - len(text)*2, y, text, 11)
+                # 色がかぶらないように黒枠（アウトライン）をつけたエンドロール
+                credits = ["BINARY HUMAN DX", "PRODUCER: M.T", "TEAM T.D", "(C)MIRAI WORK/M.T 2026", "THANK YOU FOR PLAYING!"]
+                for i, text in enumerate(credits):
+                    # 主人公(pod_y)の後に続くように設定
+                    y = pod_y + 20 + (i * 20)
+                    if -10 < y < 130:
+                        text_x = 64 - len(text)*2
+                        # 黒い縁取りを描画して視認性を高める
+                        for dx, dy in [(-1,0), (1,0), (0,-1), (0,1)]:
+                            pyxel.text(text_x + dx, int(y) + dy, text, 0)
+                        # メインテキストは白
+                        pyxel.text(text_x, int(y), text, 7)
                 
                 if t > 800:
-                    pyxel.text(10, 120, "PRESS SPACE/A TO CONTINUE", 7)
+                    pyxel.text(10, 120, "PRESS SPACE/A TO CONTINUE", 10)
             
             case "GAMEOVER":
                 self.draw_game_elements()
