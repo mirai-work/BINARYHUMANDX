@@ -128,7 +128,7 @@ class Game:
         self.p1, self.p2 = [1, 10], [14, 10]
         if self.stage == 5:
             self.boss = [7, 5]
-            self.boss_hp = 3 + self.loop
+            self.boss_hp = len(self.items)
         else:
             self.boss = None
 
@@ -241,15 +241,14 @@ class Game:
                                     self.state = "BOSS_DEFEAT"
                                     self.defeat_timer = 0
                                     pyxel.play(3, 16)
-                    else:
-                        if self.state != "ENDING":
-                            self.state = "ENDING"
-                            self.ending_timer = 0
-                            pyxel.stop(0)
-                            pyxel.stop(1)
-                            pyxel.stop(2)
-                            pyxel.stop(3)
-                            pyxel.play(3, 14)
+                    elif self.state != "ENDING":
+                        self.state = "ENDING"
+                        self.ending_timer = 0
+                        pyxel.stop(0)
+                        pyxel.stop(1)
+                        pyxel.stop(2)
+                        pyxel.stop(3)
+                        pyxel.play(3, 14)
                     
                     # Collision
                     if not self.debug_mode and self.invincible_timer <= 0 and (self.boss == self.p1 or self.boss == self.p2):
@@ -459,7 +458,9 @@ class Game:
                 self.draw_game_elements()
                 t = self.defeat_timer
                 if t < 90:
-                    s = 1 + (t / 6.0)
+                    # 2週目以降は初期倍率を上げる
+                    scale_factor = 1 + (self.loop - 1) * 0.5 if self.loop >= 2 else 1
+                    s = (1 + (t / 6.0)) * scale_factor
 
                     cx, cy = 0, 0
                     if t > 60:
@@ -470,25 +471,26 @@ class Game:
 
                     draw_x = 64 - real_w / 2 + cx
                     draw_y = 64 - real_h / 2 + cy
-                                      
-
-                    
+                                        
                     pyxel.blt(int(draw_x), int(draw_y), 0, 40, 0, 8, 8, 0, scale=s)
                 else:
                     # 豪快な大爆発エフェクト
                     explosion_t = t - 90
                     center_x = 64
                     center_y = 64
+                    # 2週目以降は爆発規模を大きくする
+                    explosion_scale = 1.5 if self.loop >= 2 else 1.0
+                    
                     for i in range(32):
                         angle = i * (math.pi * 2 / 32)
-                        dist = explosion_t * 4.0 + random.random() * 12
-                        r = max(0, 30 - explosion_t * 0.5)
+                        dist = (explosion_t * 4.0 + random.random() * 12) * explosion_scale
+                        r = max(0, (30 - explosion_t * 0.5) * explosion_scale)
                         if r > 0:
                             col = random.choice([7, 8, 9, 10]) # 白・赤・オレンジ・黄の爆煙
-                            pyxel.circ(center_x + math.cos(angle)*dist,center_y + math.sin(angle)*dist,r, col)
+                            pyxel.circ(center_x + math.cos(angle)*dist, center_y + math.sin(angle)*dist, r, col)
                     # 爆発中心の閃光
                     if explosion_t < 20:
-                        pyxel.circ(center_x,center_y,40 - explosion_t * 2,7)
+                        pyxel.circ(center_x, center_y, (40 - explosion_t * 2) * explosion_scale, 7)
 
             case "ENDING":
                 t = self.ending_timer
