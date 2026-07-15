@@ -194,7 +194,7 @@ class Game:
                             pyxel.stop(1)
                             pyxel.stop(2)
                             pyxel.stop(3)
-                            pyxel.play(3, 14) # FF風のファンファーレメロディ (チャンネル3）
+                            pyxel.play(3, 14) # ファンファーレメロディ (チャンネル3）
                     
                     if not self.debug_mode and self.invincible_timer <= 0 and (self.boss == self.p1 or self.boss == self.p2):
                         self.lives -= 1
