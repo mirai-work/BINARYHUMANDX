@@ -458,7 +458,7 @@ class Game:
                 self.draw_game_elements()
                 t = self.defeat_timer
                 if t < 90:
-                    # 2週目以降は初期倍率を上げる
+                    # 2周目以降は初期倍率を上げる
                     scale_factor = 1 + (self.loop - 1) * 0.5 if self.loop >= 2 else 1
                     s = (1 + (t / 6.0)) * scale_factor
 
@@ -478,7 +478,7 @@ class Game:
                     explosion_t = t - 90
                     center_x = 64
                     center_y = 64
-                    # 2週目以降は爆発規模を大きくする
+                    # 2周目以降は爆発規模を大きくする
                     explosion_scale = 1.5 if self.loop >= 2 else 1.0
                     
                     for i in range(32):
